@@ -1,0 +1,96 @@
+
+Certainly! Let's walk through the steps to implement user authentication:
+
+1. Implement User Registration and Login Functionality (authController.js):
+Create routes and logic in authController.js to handle user registration and login.
+
+javascript
+Copy code
+// controllers/authController.js
+
+const { User } = require('../models');
+const bcrypt = require('bcrypt');
+
+// User registration
+exports.registerUser = async (req, res) => {
+  try {
+    const { username, password } = req.body;
+
+    // Hash the password before saving it to the database
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newUser = await User.create({
+      username,
+      password: hashedPassword,
+    });
+
+    req.session.user = {
+      id: newUser.id,
+      username: newUser.username,
+    };
+
+    res.status(200).json(newUser);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to register user' });
+  }
+};
+
+// User login
+exports.loginUser = async (req, res) => {
+  try {
+    const { username, password } = req.body;
+
+    const user = await User.findOne({
+      where: { username },
+    });
+
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      return res.status(401).json({ error: 'Invalid username or password' });
+    }
+
+    req.session.user = {
+      id: user.id,
+      username: user.username,
+    };
+
+    res.status(200).json({ message: 'Login successful', user });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to log in' });
+  }
+};
+
+// User logout
+exports.logoutUser = (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: 'Failed to log out' });
+    }
+
+    res.status(204).end();
+  });
+};
+2. Create Corresponding Views:
+Create signup.handlebars and login.handlebars views in the views directory.
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Registration</title>
+</head>
+<body>
+  <h1>User Registration</h1>
+  <form action="/register" method="POST">
+    <label for="username">Username:</label>
+    <input type="text" id="username" name="username" required>
+    <br>
+    <label for="password">Password:</label>
+    <input type="password" id="password" name="password" required>
+    <br>
+    <button type="submit">Register</button>
+  </form>
+</body>
+</html>
