@@ -1,0 +1,13 @@
+{{> layouts/main}}
+
+<section class="all-posts">
+  <h2>All Blog Posts</h2>
+  {{#each posts}}
+    <article class="blog-post">
+      <h3>{{title}}</h3>
+      <p>{{content}}</p>
+      <p class="date">Posted on: {{createdAt}}</p>
+      <a href="/post/{{id}}">Read More</a>
+    </article>
+  {{/each}}
+</section>
